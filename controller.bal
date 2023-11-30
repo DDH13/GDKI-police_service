@@ -29,12 +29,6 @@ service /police on new http:Listener(8080) {
                 check updateRequestStatus(addedrequest.id, "Rejected",citizen,vsClient);
                 addedrequest.status = "Rejected";
             }
-            
-
-            // if (check checkOffenseExists(citizen.id)) {
-            //     check updateRequestStatus(addedrequest.id, "Rejected");
-            //     addedrequest.status = "Rejected";
-            // }
              else {
                 check updateRequestStatus(addedrequest.id, "Cleared",citizen,vsClient);
                 addedrequest.status = "Cleared";
