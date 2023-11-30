@@ -92,14 +92,14 @@ isolated function getRequestsForCitizen(string id) returns PoliceRequest[]|error
     }
 }
 
-isolated function updateRequestStatus(string id, string status, Citizen citizen, vs:Client vsClient) returns ()|error {
+isolated function updateRequestStatus(string id, string status, Citizen citizen, vs:Client vsClient) returns string|error {
     PoliceRequest|error updated = dbclient->/policerequests/[id].put({status: status});
     if updated is error {
         return updated;
     } else {
         // Send SMS
-        string stringResult = check sendSms(vsClient, citizen, updated);
-        return ();
+        string _ = check sendSms(vsClient, citizen, updated);
+        return id;
     }
 }
 isolated function checkCitizenHasValidIdentityRequests(string nic) returns boolean|error{

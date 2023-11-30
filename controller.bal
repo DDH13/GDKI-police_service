@@ -22,15 +22,15 @@ service /police on new http:Listener(8080) {
             boolean|error OffenseExists = checkOffenseExists(citizen.id); 
 
             if (IdentityIsValid is error || AddressIsValid is error || OffenseExists is error){
-                check updateRequestStatus(addedrequest.id, "Rejected",citizen,vsClient);
+                _ = check updateRequestStatus(addedrequest.id, "Rejected",citizen,vsClient);
                 addedrequest.status = "Rejected";
             }
             if ( !(check IdentityIsValid) || !(check AddressIsValid) || check OffenseExists ){
-                check updateRequestStatus(addedrequest.id, "Rejected",citizen,vsClient);
+                _ = check updateRequestStatus(addedrequest.id, "Rejected",citizen,vsClient);
                 addedrequest.status = "Rejected";
             }
              else {
-                check updateRequestStatus(addedrequest.id, "Cleared",citizen,vsClient);
+                _ = check updateRequestStatus(addedrequest.id, "Cleared",citizen,vsClient);
                 addedrequest.status = "Cleared";
             }
             return addedrequest;
