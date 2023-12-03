@@ -2,7 +2,11 @@ import ballerina/http;
 import ballerinax/vonage.sms as vs;
 
 service /police on new http:Listener(8080) {
-    isolated resource function get requests/[string nic]() returns PoliceRequest[]|error? {
+
+    isolated resource function get requests/[string id]() returns PoliceRequest|error? {
+        return getRequest(id);
+    }
+    isolated resource function get requests/nic/[string nic]() returns PoliceRequest[]|error? {
         Citizen|error citizen = getCitizenByNIC(nic);
         if (citizen is Citizen) {
             return getRequestsForCitizen(citizen.id);
