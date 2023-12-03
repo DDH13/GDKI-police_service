@@ -1,6 +1,12 @@
 import ballerina/http;
 import ballerinax/vonage.sms as vs;
 
+@http:ServiceConfig {
+    cors: {
+       allowOrigins: ["*"]
+    }
+}
+
 service /police on new http:Listener(8080) {
 
     isolated resource function get requests/[string id]() returns PoliceRequest|error? {
