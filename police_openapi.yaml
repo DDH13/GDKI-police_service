@@ -10,9 +10,35 @@ servers:
     port:
       default: "8080"
 paths:
-  /requests/{nic}:
+  /requests/{id}:
     get:
-      operationId: getRequestsNic
+      operationId: getRequestsId
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoliceRequest'
+        "202":
+          description: Accepted
+        "400":
+          description: BadRequest
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /requests/nic/{nic}:
+    get:
+      operationId: getRequestsNicNic
       parameters:
       - name: nic
         in: path
@@ -38,6 +64,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorPayload'
+  /requests/{nic}:
     post:
       operationId: postRequestsNic
       parameters:
