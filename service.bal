@@ -40,8 +40,8 @@ service /police on new http:Listener(8080) {
                 addedrequest.status = "Rejected";
             }
              else {
-                _ = check updateRequestStatus(addedrequest.id, "Cleared",citizen,vsClient);
-                addedrequest.status = "Cleared";
+                _ = check updateRequestStatus(addedrequest.id, "Verified",citizen,vsClient);
+                addedrequest.status = "Verified";
             }
             return addedrequest;
         } else {
