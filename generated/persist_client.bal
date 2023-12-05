@@ -35,6 +35,7 @@ public isolated client class Client {
                 "requests[].citizenId": {relation: {entityName: "requests", refField: "citizenId"}},
                 "requests[].status": {relation: {entityName: "requests", refField: "status"}},
                 "requests[].reason": {relation: {entityName: "requests", refField: "reason"}},
+                "requests[].gid": {relation: {entityName: "requests", refField: "gid"}},
                 "requests[].appliedTime": {relation: {entityName: "requests", refField: "appliedTime"}}
             },
             keyFields: ["id"],
@@ -66,6 +67,7 @@ public isolated client class Client {
                 citizenId: {columnName: "citizenId"},
                 status: {columnName: "status"},
                 reason: {columnName: "reason"},
+                gid: {columnName: "gid"},
                 appliedTime: {columnName: "appliedTime"},
                 "citizen.id": {relation: {entityName: "citizen", refField: "id"}},
                 "citizen.nic": {relation: {entityName: "citizen", refField: "nic"}},

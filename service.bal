@@ -1,5 +1,10 @@
 import ballerina/http;
 import ballerinax/vonage.sms as vs;
+public type NewPoliceRequest record {
+    string gid;
+    string reason;
+    string nic;
+};
 
 @http:ServiceConfig {
     cors: {
@@ -21,14 +26,14 @@ service /police on new http:Listener(8080) {
         }
     }
 
-    isolated resource function post requests/[string nic]() returns PoliceRequest|error? {
-        Citizen|error citizen = getCitizenByNIC(nic);
+    isolated resource function post requests(NewPoliceRequest request) returns PoliceRequest|error? {
+        Citizen|error citizen = getCitizenByNIC(request.nic);
         vs:Client vsClient = check getVsClient();
 
         if (citizen is Citizen) {
-            PoliceRequest addedrequest = check addRequest(citizen);
-            boolean|error IdentityIsValid = checkCitizenHasValidIdentityRequests(nic);
-            boolean|error AddressIsValid = checkCitizenHasValidAddressRequests(nic);
+            PoliceRequest addedrequest = check addRequest(citizen,request.reason,request.gid);
+            boolean|error IdentityIsValid = checkCitizenHasValidIdentityRequests(request.nic);
+            boolean|error AddressIsValid = checkCitizenHasValidAddressRequests(request.nic);
             boolean|error OffenseExists = checkOffenseExists(citizen.id); 
 
             if (IdentityIsValid is error || AddressIsValid is error || OffenseExists is error){

@@ -27,6 +27,7 @@ CREATE TABLE `PoliceRequest` (
 	`id` VARCHAR(191) NOT NULL,
 	`status` VARCHAR(191) NOT NULL,
 	`reason` VARCHAR(191),
+	`gid` VARCHAR(191) NOT NULL,
 	`appliedTime` TIMESTAMP NOT NULL,
 	`citizenId` VARCHAR(191) NOT NULL,
 	FOREIGN KEY(`citizenId`) REFERENCES `Citizen`(`id`),

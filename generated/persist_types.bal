@@ -64,6 +64,7 @@ public type PoliceRequest record {|
     string citizenId;
     string status;
     string? reason;
+    string gid;
     time:Utc appliedTime;
 |};
 
@@ -72,6 +73,7 @@ public type PoliceRequestOptionalized record {|
     string citizenId?;
     string status?;
     string? reason?;
+    string gid?;
     time:Utc appliedTime?;
 |};
 
@@ -88,6 +90,7 @@ public type PoliceRequestUpdate record {|
     string citizenId?;
     string status?;
     string? reason?;
+    string gid?;
     time:Utc appliedTime?;
 |};
 
