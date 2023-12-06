@@ -1,5 +1,7 @@
 import ballerina/http;
+import ballerina/uuid;
 import ballerinax/vonage.sms as vs;
+
 public type NewPoliceRequest record {
     string gid;
     string reason;
@@ -8,7 +10,7 @@ public type NewPoliceRequest record {
 
 @http:ServiceConfig {
     cors: {
-       allowOrigins: ["*"]
+        allowOrigins: ["*"]
     }
 }
 
@@ -44,30 +46,52 @@ service /police on new http:Listener(8080) {
         Citizen|error citizen = getCitizenByNIC(request.nic);
         vs:Client vsClient = check getVsClient();
 
-        if (citizen is Citizen) {
-            PoliceRequest addedrequest = check addRequest(citizen,request.reason,request.gid);
+        if (citizen is error) {
+            Citizen newCitizen = {nic: request.nic, id: uuid:createType4AsString(), fullname: "new user", isCriminal: false};
+            citizen = addCitizen(newCitizen);
             boolean|error IdentityIsValid = checkCitizenHasValidIdentityRequests(request.nic);
             boolean|error AddressIsValid = checkCitizenHasValidAddressRequests(request.nic);
-            boolean|error OffenseExists = checkOffenseExists(citizen.id); 
 
-            if (IdentityIsValid is error || AddressIsValid is error || OffenseExists is error){
-                _ = check updateRequestStatus(addedrequest.id, "Rejected",citizen);
+            PoliceRequest addedrequest = check addRequest(newCitizen, request.reason, request.gid);
+            if (IdentityIsValid is error || AddressIsValid is error) {
+                _ = check updateRequestStatus(addedrequest.id, "Rejected", newCitizen);
+                _ = check sendSms(vsClient, newCitizen, addedrequest);
+                addedrequest.status = "Rejected";
+                return addedrequest;
+            } else if (!IdentityIsValid || !AddressIsValid) {
+                _ = check updateRequestStatus(addedrequest.id, "Rejected", newCitizen);
+                _ = check sendSms(vsClient, newCitizen, addedrequest);
+                addedrequest.status = "Rejected";
+                return addedrequest;
+            } else {
+                _ = check updateRequestStatus(addedrequest.id, "Verified", newCitizen);
+                _ = check sendSms(vsClient, newCitizen, addedrequest);
+                addedrequest.status = "Verified";
+                return addedrequest;
+            }
+        }
+        else {
+            PoliceRequest addedrequest = check addRequest(citizen, request.reason, request.gid);
+            boolean|error IdentityIsValid = checkCitizenHasValidIdentityRequests(request.nic);
+            boolean|error AddressIsValid = checkCitizenHasValidAddressRequests(request.nic);
+            boolean|error OffenseExists = checkOffenseExists(citizen.id);
+
+            if (IdentityIsValid is error || AddressIsValid is error || OffenseExists is error) {
+                _ = check updateRequestStatus(addedrequest.id, "Rejected", citizen);
                 _ = check sendSms(vsClient, citizen, addedrequest);
                 addedrequest.status = "Rejected";
             }
-            if ( !(check IdentityIsValid) || !(check AddressIsValid) || check OffenseExists ){
-                _ = check updateRequestStatus(addedrequest.id, "Rejected",citizen);
+            if (!(check IdentityIsValid) || !(check AddressIsValid) || check OffenseExists) {
+                _ = check updateRequestStatus(addedrequest.id, "Rejected", citizen);
                 _ = check sendSms(vsClient, citizen, addedrequest);
                 addedrequest.status = "Rejected";
             }
-             else {
-                _ = check updateRequestStatus(addedrequest.id, "Verified",citizen);
+            else {
+                _ = check updateRequestStatus(addedrequest.id, "Verified", citizen);
                 _ = check sendSms(vsClient, citizen, addedrequest);
                 addedrequest.status = "Verified";
             }
             return addedrequest;
-        } else {
-            return citizen;
         }
     }
     isolated resource function delete requests/[string id]() returns string|error? {
