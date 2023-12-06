@@ -4,6 +4,9 @@ import ballerinax/mysql.driver as _;
 import ballerina/time;
 import ballerina/http;
 import ballerinax/vonage.sms as vs;
+import ballerina/sql;
+import ballerinax/mysql;
+import ballerina/persist;
 
 isolated function getCitizen(string id) returns Citizen|error {
     Citizen|error citizen = dbclient->/citizens/[id];
@@ -80,6 +83,57 @@ isolated function getRequest(string id) returns PoliceRequest|error {
     }
 }
 
+isolated function getRequests(int rlimit = 10000, int offset = 0) returns PoliceRequest[]|error {
+    sql:ParameterizedQuery query = `SELECT * FROM PoliceRequest ORDER BY appliedTime DESC LIMIT ${rlimit} OFFSET ${offset}`;
+    stream<PoliceRequest, sql:Error?> resultStream = mysqldbClient->query(query);
+    PoliceRequest[] requests = [];
+    check from PoliceRequest request in resultStream
+        do {
+            requests.push(request);
+        };
+    check resultStream.close();
+    return requests;
+}
+isolated function getRequestsByStatus(string status, int rlimit = 10000, int offset = 0) returns PoliceRequest[]|error {
+    sql:ParameterizedQuery query = `SELECT * FROM PoliceRequest WHERE status = ${status} ORDER BY appliedTime DESC LIMIT ${rlimit} OFFSET ${offset}`;
+    stream<PoliceRequest, sql:Error?> resultStream = mysqldbClient->query(query);
+    PoliceRequest[] requests = [];
+    check from PoliceRequest request in resultStream
+        do {
+            requests.push(request);
+        };
+    check resultStream.close();
+    return requests;
+}
+isolated function getRequestsByStatusAndGramaDivision(string status, string grama_division_id, int rlimit = 10000, int offset = 0) returns PoliceRequest[]|error {
+    sql:ParameterizedQuery query = `SELECT * FROM PoliceRequest WHERE status = ${status} AND gid = ${grama_division_id} ORDER BY appliedTime DESC LIMIT ${rlimit} OFFSET ${offset}`;
+    stream<PoliceRequest, sql:Error?> resultStream = mysqldbClient->query(query);
+    PoliceRequest[] requests = [];
+    check from PoliceRequest request in resultStream
+        do {
+            requests.push(request);
+        };
+    check resultStream.close();
+    return requests;
+}
+isolated function getRequestsByGramaDivision(string grama_division_id, int rlimit = 10000, int offset = 0) returns PoliceRequest[]|error {
+    sql:ParameterizedQuery query = `SELECT * FROM PoliceRequest WHERE gid = ${grama_division_id} ORDER BY appliedTime DESC LIMIT ${rlimit} OFFSET ${offset}`;
+    stream<PoliceRequest, sql:Error?> resultStream = mysqldbClient->query(query);
+    PoliceRequest[] requests = [];
+    check from PoliceRequest request in resultStream
+        do {
+            requests.push(request);
+        };
+    check resultStream.close();
+    return requests;
+}
+isolated function deleteRequest(string id) returns ()|error {
+    PoliceRequest|persist:Error deleted = dbclient->/policerequests/[id].delete();
+    if (deleted is error) {
+        return deleted;
+    }
+    return ();
+}
 isolated function getRequestsForCitizen(string id) returns PoliceRequest[]|error? {
     PoliceRequest[]|error? requests = from var request in dbclient->/policerequests(targetType = PoliceRequest)
         where request.citizenId == id
@@ -122,7 +176,9 @@ isolated function checkCitizenHasValidAddressRequests(string nic) returns boolea
 
 
 }
-
+final mysql:Client mysqldbClient = check new (
+    host = host, user = user, password = password, port = port, database = database
+);
 configurable string address_url = ?;
 configurable string identity_url = ?;
 function initializeDbClient() returns Client|error {
