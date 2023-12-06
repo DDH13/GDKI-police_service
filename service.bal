@@ -42,7 +42,7 @@ service /police on new http:Listener(8080) {
 
     isolated resource function post requests(NewPoliceRequest request) returns PoliceRequest|error? {
         Citizen|error citizen = getCitizenByNIC(request.nic);
-        vs:Client|error vsClient =  getVsClient();
+        vs:Client vsClient = check getVsClient();
 
         if (citizen is Citizen) {
             PoliceRequest addedrequest = check addRequest(citizen,request.reason,request.gid);
