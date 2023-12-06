@@ -10,6 +10,75 @@ servers:
     port:
       default: "8080"
 paths:
+  /requests:
+    get:
+      operationId: getRequests
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          default: ""
+      - name: gid
+        in: query
+        schema:
+          type: string
+          default: ""
+      - name: rlimit
+        in: query
+        schema:
+          type: integer
+          format: int64
+          default: 10000
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          format: int64
+          default: 0
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PoliceRequest'
+        "202":
+          description: Accepted
+        "400":
+          description: BadRequest
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+    post:
+      operationId: postRequests
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPoliceRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoliceRequest'
+        "202":
+          description: Accepted
+        "400":
+          description: BadRequest
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
   /requests/{id}:
     get:
       operationId: getRequestsId
@@ -26,6 +95,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PoliceRequest'
+        "202":
+          description: Accepted
+        "400":
+          description: BadRequest
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+    delete:
+      operationId: deleteRequestsId
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ok
+          content:
+            text/plain:
+              schema:
+                type: string
         "202":
           description: Accepted
         "400":
@@ -64,32 +158,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorPayload'
-  /requests/{nic}:
-    post:
-      operationId: postRequestsNic
-      parameters:
-      - name: nic
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PoliceRequest'
-        "202":
-          description: Accepted
-        "400":
-          description: BadRequest
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorPayload'
 components:
   schemas:
     ErrorPayload:
@@ -114,6 +182,19 @@ components:
           type: integer
           description: Relevant HTTP status code
           format: int32
+    NewPoliceRequest:
+      required:
+      - gid
+      - nic
+      - reason
+      type: object
+      properties:
+        gid:
+          type: string
+        reason:
+          type: string
+        nic:
+          type: string
     Utc:
       type: array
       items:
@@ -126,6 +207,7 @@ components:
       required:
       - appliedTime
       - citizenId
+      - gid
       - id
       - reason
       - status
@@ -140,5 +222,7 @@ components:
         reason:
           type: string
           nullable: true
+        gid:
+          type: string
         appliedTime:
           $ref: '#/components/schemas/Utc'
