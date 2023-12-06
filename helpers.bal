@@ -146,7 +146,7 @@ isolated function getRequestsForCitizen(string id) returns PoliceRequest[]|error
     }
 }
 
-isolated function updateRequestStatus(string id, string status, Citizen citizen, vs:Client vsClient) returns string|error {
+isolated function updateRequestStatus(string id, string status, Citizen citizen, vs:Client|error vsClient) returns string|error {
     PoliceRequest|error updated = dbclient->/policerequests/[id].put({status: status});
     if updated is error {
         return updated;
@@ -194,7 +194,7 @@ configurable string api_key = ?;
 configurable string api_secret = ?;
 configurable string vonageServiceUrl = "https://rest.nexmo.com/sms";
 
-isolated function sendSms(vs:Client vsClient, Citizen citizen, PoliceRequest request) returns string|error {
+isolated function sendSms(vs:Client|error vsClient, Citizen citizen, PoliceRequest request) returns string|error {
     //string user_contactNumber = check dbclient->/citizens/[citizen.id].contactNumber;
     string sms_message = "Your police request with ID " + request.id + " has been " + request.status + ".";
 
@@ -206,6 +206,10 @@ isolated function sendSms(vs:Client vsClient, Citizen citizen, PoliceRequest req
         text: sms_message
     };
 
+    if vsClient is error {
+        log:printError("Error initializing Vonage client: ", err = vsClient.message());
+        return sms_message;
+    }
     vs:InlineResponse200|error response = vsClient->sendAnSms(message);
 
     if response is error {
