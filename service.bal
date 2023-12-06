@@ -14,6 +14,20 @@ public type NewPoliceRequest record {
 
 service /police on new http:Listener(8080) {
 
+    isolated resource function get requests(string status = "", string gid = "", int rlimit = 10000, int offset = 0) returns PoliceRequest[]|error? {
+        if (status != "" && gid != "") {
+            return getRequestsByStatusAndGramaDivision(status, gid, rlimit, offset);
+        }
+        else if (status != "") {
+            return getRequestsByStatus(status, rlimit, offset);
+        }
+        else if (gid != "") {
+            return getRequestsByGramaDivision(gid, rlimit, offset);
+        }
+        else {
+            return getRequests(rlimit, offset);
+        }
+    }
     isolated resource function get requests/[string id]() returns PoliceRequest|error? {
         return getRequest(id);
     }
@@ -53,6 +67,14 @@ service /police on new http:Listener(8080) {
             return citizen;
         }
     }
+    isolated resource function delete requests/[string id]() returns string|error? {
+        error? deleteRequestResult = deleteRequest(id);
+        if deleteRequestResult is error {
+            return deleteRequestResult;
+        }
+        else {
+            return id;
+        }
+    }
 
 }
-
