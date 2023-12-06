@@ -51,15 +51,18 @@ service /police on new http:Listener(8080) {
             boolean|error OffenseExists = checkOffenseExists(citizen.id); 
 
             if (IdentityIsValid is error || AddressIsValid is error || OffenseExists is error){
-                _ = check updateRequestStatus(addedrequest.id, "Rejected",citizen,vsClient);
+                _ = check updateRequestStatus(addedrequest.id, "Rejected",citizen);
+                _ = check sendSms(vsClient, citizen, addedrequest);
                 addedrequest.status = "Rejected";
             }
             if ( !(check IdentityIsValid) || !(check AddressIsValid) || check OffenseExists ){
-                _ = check updateRequestStatus(addedrequest.id, "Rejected",citizen,vsClient);
+                _ = check updateRequestStatus(addedrequest.id, "Rejected",citizen);
+                _ = check sendSms(vsClient, citizen, addedrequest);
                 addedrequest.status = "Rejected";
             }
              else {
-                _ = check updateRequestStatus(addedrequest.id, "Verified",citizen,vsClient);
+                _ = check updateRequestStatus(addedrequest.id, "Verified",citizen);
+                _ = check sendSms(vsClient, citizen, addedrequest);
                 addedrequest.status = "Verified";
             }
             return addedrequest;
