@@ -8,6 +8,15 @@ import ballerina/sql;
 import ballerinax/mysql;
 import ballerina/persist;
 
+type PoliceRequestWithNIC record {
+    readonly string id;
+    Citizen citizen;
+    string status;
+    string? reason;
+    string gid;
+    time:Utc appliedTime;
+    string nic;
+};
 isolated function getCitizen(string id) returns Citizen|error {
     Citizen|error citizen = dbclient->/citizens/[id];
     if citizen is error {
@@ -83,44 +92,44 @@ isolated function getRequest(string id) returns PoliceRequest|error {
     }
 }
 
-isolated function getRequests(int rlimit = 10000, int offset = 0) returns PoliceRequest[]|error {
-    sql:ParameterizedQuery query = `SELECT * FROM PoliceRequest ORDER BY appliedTime DESC LIMIT ${rlimit} OFFSET ${offset}`;
-    stream<PoliceRequest, sql:Error?> resultStream = mysqldbClient->query(query);
-    PoliceRequest[] requests = [];
-    check from PoliceRequest request in resultStream
+isolated function getRequests(int rlimit = 10000, int offset = 0) returns PoliceRequestWithNIC[]|error {
+    sql:ParameterizedQuery query = `SELECT PoliceRequest.id, citizenId, status, reason, gid, appliedTime, nic FROM PoliceRequest INNER JOIN Citizen On PoliceRequest.citizenId = Citizen.id ORDER BY appliedTime DESC LIMIT ${rlimit} OFFSET ${offset}`;
+    stream<PoliceRequestWithNIC, sql:Error?> resultStream = mysqldbClient->query(query);
+    PoliceRequestWithNIC[] requests = [];
+    check from PoliceRequestWithNIC request in resultStream
         do {
             requests.push(request);
         };
     check resultStream.close();
     return requests;
 }
-isolated function getRequestsByStatus(string status, int rlimit = 10000, int offset = 0) returns PoliceRequest[]|error {
-    sql:ParameterizedQuery query = `SELECT * FROM PoliceRequest WHERE status = ${status} ORDER BY appliedTime DESC LIMIT ${rlimit} OFFSET ${offset}`;
-    stream<PoliceRequest, sql:Error?> resultStream = mysqldbClient->query(query);
-    PoliceRequest[] requests = [];
-    check from PoliceRequest request in resultStream
+isolated function getRequestsByStatus(string status, int rlimit = 10000, int offset = 0) returns PoliceRequestWithNIC[]|error {
+    sql:ParameterizedQuery query = `SELECT PoliceRequest.id, citizenId, status, reason, gid, appliedTime, nic FROM PoliceRequest INNER JOIN Citizen On PoliceRequest.citizenId = Citizen.id WHERE status = ${status} ORDER BY appliedTime DESC LIMIT ${rlimit} OFFSET ${offset}`;
+    stream<PoliceRequestWithNIC, sql:Error?> resultStream = mysqldbClient->query(query);
+    PoliceRequestWithNIC[] requests = [];
+    check from PoliceRequestWithNIC request in resultStream
         do {
             requests.push(request);
         };
     check resultStream.close();
     return requests;
 }
-isolated function getRequestsByStatusAndGramaDivision(string status, string grama_division_id, int rlimit = 10000, int offset = 0) returns PoliceRequest[]|error {
-    sql:ParameterizedQuery query = `SELECT * FROM PoliceRequest WHERE status = ${status} AND gid = ${grama_division_id} ORDER BY appliedTime DESC LIMIT ${rlimit} OFFSET ${offset}`;
-    stream<PoliceRequest, sql:Error?> resultStream = mysqldbClient->query(query);
-    PoliceRequest[] requests = [];
-    check from PoliceRequest request in resultStream
+isolated function getRequestsByStatusAndGramaDivision(string status, string grama_division_id, int rlimit = 10000, int offset = 0) returns PoliceRequestWithNIC[]|error {
+    sql:ParameterizedQuery query = `SELECT PoliceRequest.id, citizenId, status, reason, gid, appliedTime, nic FROM PoliceRequest INNER JOIN Citizen On PoliceRequest.citizenId = Citizen.id WHERE status = ${status} AND gid = ${grama_division_id} ORDER BY appliedTime DESC LIMIT ${rlimit} OFFSET ${offset}`;
+    stream<PoliceRequestWithNIC, sql:Error?> resultStream = mysqldbClient->query(query);
+    PoliceRequestWithNIC[] requests = [];
+    check from PoliceRequestWithNIC request in resultStream
         do {
             requests.push(request);
         };
     check resultStream.close();
     return requests;
 }
-isolated function getRequestsByGramaDivision(string grama_division_id, int rlimit = 10000, int offset = 0) returns PoliceRequest[]|error {
-    sql:ParameterizedQuery query = `SELECT * FROM PoliceRequest WHERE gid = ${grama_division_id} ORDER BY appliedTime DESC LIMIT ${rlimit} OFFSET ${offset}`;
-    stream<PoliceRequest, sql:Error?> resultStream = mysqldbClient->query(query);
-    PoliceRequest[] requests = [];
-    check from PoliceRequest request in resultStream
+isolated function getRequestsByGramaDivision(string grama_division_id, int rlimit = 10000, int offset = 0) returns PoliceRequestWithNIC[]|error {
+    sql:ParameterizedQuery query = `SELECT PoliceRequest.id, citizenId, status, reason, gid, appliedTime, nic FROM PoliceRequest INNER JOIN Citizen On PoliceRequest.citizenId = Citizen.id WHERE gid = ${grama_division_id} ORDER BY appliedTime DESC LIMIT ${rlimit} OFFSET ${offset}`;
+    stream<PoliceRequestWithNIC, sql:Error?> resultStream = mysqldbClient->query(query);
+    PoliceRequestWithNIC[] requests = [];
+    check from PoliceRequestWithNIC request in resultStream
         do {
             requests.push(request);
         };

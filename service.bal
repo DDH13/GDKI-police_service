@@ -14,7 +14,7 @@ public type NewPoliceRequest record {
 
 service /police on new http:Listener(8080) {
 
-    isolated resource function get requests(string status = "", string gid = "", int rlimit = 10000, int offset = 0) returns PoliceRequest[]|error? {
+    isolated resource function get requests(string status = "", string gid = "", int rlimit = 10000, int offset = 0) returns PoliceRequestWithNIC[]|error? {
         if (status != "" && gid != "") {
             return getRequestsByStatusAndGramaDivision(status, gid, rlimit, offset);
         }
