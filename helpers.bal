@@ -155,13 +155,11 @@ isolated function getRequestsForCitizen(string id) returns PoliceRequest[]|error
     }
 }
 
-isolated function updateRequestStatus(string id, string status, Citizen citizen, vs:Client vsClient) returns string|error {
+isolated function updateRequestStatus(string id, string status, Citizen citizen) returns string|error {
     PoliceRequest|error updated = dbclient->/policerequests/[id].put({status: status});
     if updated is error {
         return updated;
     } else {
-        // Send SMS
-        string _ = check sendSms(vsClient, citizen, updated);
         return id;
     }
 }
@@ -203,25 +201,38 @@ configurable string api_key = ?;
 configurable string api_secret = ?;
 configurable string vonageServiceUrl = "https://rest.nexmo.com/sms";
 
+        // // Send SMS
+        // string _ = check sendSms(vsClient, citizen, updated);
 isolated function sendSms(vs:Client vsClient, Citizen citizen, PoliceRequest request) returns string|error {
-    //string user_contactNumber = check dbclient->/citizens/[citizen.id].contactNumber;
-    string sms_message = "Your police request with ID " + request.id + " has been " + request.status + ".";
+    //get the contact number
+    string url = identity_url + "/identity/requests/latest/" + citizen.nic;
+    http:Client NewClient = check new (url);
+    json|error identityResponse = check NewClient->/.get();
 
-    vs:NewMessage message = {
-        api_key: api_key,
-        'from: "Vonage APIs",
-        to:"+94764378939",        //to: user_contactNumber,
-        api_secret: api_secret,
-        text: sms_message
-    };
+    if (identityResponse is json) {
+        // Extract the contact_num from the JSON object
+        string toNumber = check identityResponse.contact_num;
+        string sms_message = "Your address request with request ID " + request.id + " has been " + request.status + ".";
 
-    vs:InlineResponse200|error response = vsClient->sendAnSms(message);
+        vs:NewMessage message = {
+            api_key: api_key,
+            'from: "Vonage APIs",
+            to: toNumber,        //to: user_contactNumber,
+            api_secret: api_secret,
+            text: sms_message
+        };
 
-    if response is error {
-        log:printError("Error sending SMS: ", err = response.message());
+        vs:InlineResponse200|error response = vsClient->sendAnSms(message);
+
+        if response is error {
+            log:printError("Error sending SMS: ", err = response.message());
+        }
+    
+        return sms_message;
+    } else {
+        // Handle the case when the response is an error
+        return identityResponse.toString();
     }
-
-    return sms_message;
 }
 
 function initializeVsClient() returns vs:Client | error {
