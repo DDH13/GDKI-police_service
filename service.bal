@@ -47,7 +47,8 @@ service /police on new http:Listener(8080) {
         vs:Client vsClient = check getVsClient();
 
         if (citizen is error) {
-            Citizen newCitizen = {nic: request.nic, id: uuid:createType4AsString(), fullname: "new user", isCriminal: false};
+            json latestIdentityRequest = check getLatestIdentityRequest(request.nic);
+            Citizen newCitizen = {nic: request.nic, id: uuid:createType4AsString(), fullname: check latestIdentityRequest.fullname, isCriminal: false};
             citizen = addCitizen(newCitizen);
             boolean|error IdentityIsValid = checkCitizenHasValidIdentityRequests(request.nic);
             boolean|error AddressIsValid = checkCitizenHasValidAddressRequests(request.nic);

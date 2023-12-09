@@ -188,6 +188,16 @@ isolated function checkCitizenHasValidIdentityRequests(string nic) returns boole
     return response;
 }
 
+isolated function getLatestIdentityRequest(string nic) returns json|error {
+    string url = identity_url + "/identity/requests/latest/" + nic;
+    http:Client NewClient = check new (url);
+    json|error response = check NewClient->/.get();
+    if (response is error) {
+        return response;
+    }
+    return response;
+}
+
 isolated function checkCitizenHasValidAddressRequests(string nic) returns boolean|error {
     string url = address_url + "/address/requests/validate/" + nic;
     http:Client NewClient = check new (url);
