@@ -30,10 +30,10 @@ service /police on new http:Listener(8080) {
             return getRequests(rlimit, offset);
         }
     }
-    isolated resource function get requests/[string id]() returns PoliceRequest|error? {
+    isolated resource function get requests/[string id]() returns PoliceRequestWithNIC|error {
         return getRequest(id);
     }
-    isolated resource function get requests/nic/[string nic]() returns PoliceRequest[]|error? {
+    isolated resource function get requests/nic/[string nic]() returns PoliceRequestWithNIC[]|error?|error {
         Citizen|error citizen = getCitizenByNIC(nic);
         if (citizen is Citizen) {
             return getRequestsForCitizen(citizen.id);

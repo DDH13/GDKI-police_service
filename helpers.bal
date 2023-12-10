@@ -92,13 +92,21 @@ isolated function addRequest(Citizen citizen, string reason, string gid) returns
     }
 }
 
-isolated function getRequest(string id) returns PoliceRequest|error {
-    PoliceRequest|error request = dbclient->/policerequests/[id];
-    if request is error {
-        return request;
+isolated function getRequest(string id) returns PoliceRequestWithNIC|error {
+    sql:ParameterizedQuery query = `SELECT PoliceRequest.id, citizenId, status, reason, gid, appliedTime, nic FROM PoliceRequest INNER JOIN Citizen On PoliceRequest.citizenId = Citizen.id WHERE PoliceRequest.id = ${id}`;
+    stream<PoliceRequestWithNIC, sql:Error?> resultStream = mysqldbClient->query(query);
+    PoliceRequestWithNIC[] requests = [];
+    check from PoliceRequestWithNIC request in resultStream
+        do {
+            requests.push(request);
+        };
+    check resultStream.close();
+    if (requests.length() > 0) {
+        return requests[0];
     } else {
-        return request;
-    }
+        return error("Error while retrieving request from the database");
+    }   
+    
 }
 
 isolated function getRequests(int rlimit = 10000, int offset = 0) returns PoliceRequestWithNIC[]|error {
@@ -157,16 +165,16 @@ isolated function deleteRequest(string id) returns ()|error {
     return ();
 }
 
-isolated function getRequestsForCitizen(string id) returns PoliceRequest[]|error? {
-    PoliceRequest[]|error? requests = from var request in dbclient->/policerequests(targetType = PoliceRequest)
-        where request.citizenId == id
-        select request;
-    if requests is error {
-        log:printError("Error while retrieving requests from the database", 'error = requests);
-        return requests;
-    } else {
-        return requests;
-    }
+isolated function getRequestsForCitizen(string id) returns PoliceRequestWithNIC[]|error? {
+    sql:ParameterizedQuery query = `SELECT PoliceRequest.id, citizenId, status, reason, gid, appliedTime, nic FROM PoliceRequest INNER JOIN Citizen On PoliceRequest.citizenId = Citizen.id WHERE citizenId = ${id} ORDER BY appliedTime DESC`;
+    stream<PoliceRequestWithNIC, sql:Error?> resultStream = mysqldbClient->query(query);
+    PoliceRequestWithNIC[] requests = [];
+    check from PoliceRequestWithNIC request in resultStream
+        do {
+            requests.push(request);
+        };
+    check resultStream.close();
+    return requests;
 }
 
 isolated function updateRequestStatus(string id, string status, Citizen citizen) returns string|error {
